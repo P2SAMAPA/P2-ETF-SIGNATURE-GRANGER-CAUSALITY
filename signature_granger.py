@@ -56,6 +56,10 @@ def signature_granger_test(X, Y, depth=4, max_lag=5):
     Test whether X Granger-causes Y using path signatures.
     Returns the Granger causality score (F-statistic-like).
     """
+    # Ensure X and Y are numpy arrays
+    X = np.asarray(X).flatten()
+    Y = np.asarray(Y).flatten()
+    
     if len(X) < max_lag + 2 or len(Y) < max_lag + 2:
         return 0.0
     # Prepare data: for each time t, use lagged signatures
@@ -110,7 +114,7 @@ def signature_granger_test(X, Y, depth=4, max_lag=5):
 def signature_granger_score(returns, macro_df, depth=4, max_lag=5):
     """
     Compute per-ETF signature Granger causality score.
-    Higher score = the ETF Granger-causes other ETFs.
+    Higher score = the macro factor Granger-causes the ETF.
     """
     if len(returns) < max_lag + 10 or macro_df is None or len(macro_df) < max_lag + 10:
         return 0.0
@@ -124,9 +128,8 @@ def signature_granger_score(returns, macro_df, depth=4, max_lag=5):
     macro_df = macro_df[mask]
     if len(returns) < max_lag + 10:
         return 0.0
-    # Compute macro factor
-    macro_factor = compute_composite_macro_factor(macro_df)[-1]
+    # Compute macro factor series (full array)
+    macro_factor = compute_composite_macro_factor(macro_df)
     # Compute Granger causality from macro factor to returns
-    # This tells us how much macro causes the ETF
     gc_score = signature_granger_test(macro_factor, returns, depth, max_lag)
     return float(gc_score)
